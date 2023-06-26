@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: balcha-healthcare-container
-        image: balcha/healthcare_app:latest
+        image: balcha/healthcare_domin:latest
         ports:
         - containerPort: 8082
 ---
