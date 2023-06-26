@@ -51,5 +51,11 @@ pipeline {
 				sh "docker push balcha/healthcare_app:latest"
 			}
 		}
+        stage('Deploy to Kubernetes Cluster') {
+            steps {
+		script {
+            sshPublisher(publishers: [sshPublisherDesc(configName: 'kubernetescluster', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'kubectl apply -f k8sdeployment.yaml', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '*.yaml')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])		}
+            }
+        }
     }
 }
