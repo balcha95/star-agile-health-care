@@ -1,17 +1,14 @@
 pipeline {
-    agent { label 'slavenode1' }
+    agent { label 'slave' }
 	
-
     tools {
         // Install the Maven version configured as "M3" and add it to the path.
-	        maven "maven"
+	        maven "maven 3.8.8"
     }
-
-	environment {	
+    environment {	
 		DOCKERHUB_CREDENTIALS=credentials('new_docker_id')
-	} 
-    
-    stages {
+	}
+    stages { 
         stage('SCM Checkout') {
             steps {
                 // Get some code from a GitHub repository
@@ -24,7 +21,7 @@ pipeline {
                 sh "mvn -Dmaven.test.failure.ignore=true clean package"
             }
 		}
-        stage("Docker build"){
+                stage("Docker build"){
             steps {
 				sh 'docker version'
 					sh "docker build -t balcha/healthcare_app:${BUILD_NUMBER} ."
@@ -54,21 +51,5 @@ pipeline {
 				sh "docker push balcha/healthcare_app:latest"
 			}
 		}
-        stage('Approve - Deployment to Kubernetes Cluster'){
-            steps{
-                
-                //----------------send an approval prompt-----------
-                script {
-                   env.APPROVED_DEPLOY = input message: 'User input required Choose "yes" | "Abort"'
-                       }
-                //-----------------end approval prompt------------
-            }
-        }
-        stage('Deploy to Kubernetes Cluster') {
-            steps {
-		script {
-            sshPublisher(publishers: [sshPublisherDesc(configName: 'kuberneteCluster', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: 'kubectl apply -f k8sdeployment.yaml', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '*.yaml')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])		}
-            }
-        }
     }
 }
